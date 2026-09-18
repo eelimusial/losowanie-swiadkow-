@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Losowarka</title>
+<title>Losowanie świadków na ślub Eli i Michała</title>
 
 <style>
 body {
@@ -22,15 +22,23 @@ body {
     width: 90%;
     max-width: 500px;
     background: white;
-    padding: 25px;
+    padding: 28px;
     border-radius: 25px;
     box-shadow: 0 10px 35px rgba(0,0,0,0.1);
+    box-sizing: border-box;
 }
 
 h1 {
     text-align: center;
-    font-size: 30px;
-    margin-top: 0;
+    font-size: 27px;
+    margin: 0 0 5px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 25px;
+    color: #777;
 }
 
 textarea {
@@ -60,20 +68,48 @@ button {
     color: white;
 }
 
+#losuj:disabled {
+    opacity: 0.5;
+}
+
 #reset {
     background: #eee8e3;
     color: #292522;
 }
 
 #wynik {
-    min-height: 60px;
+    min-height: 150px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 38px;
+    margin: 20px 0;
+}
+
+.osoba {
+    margin: 10px 0;
+    font-size: 26px;
     font-weight: 800;
-    margin: 25px 0 10px;
+}
+
+.nazwa {
+    font-size: 15px;
+    color: #888;
+    margin-bottom: 3px;
+}
+
+.losowanie {
+    animation: puls 0.15s infinite alternate;
+}
+
+@keyframes puls {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.08);
+    }
 }
 
 #pozostalo {
@@ -88,13 +124,30 @@ button {
 
 <div class="container">
 
-<h1>🎲 Losowarka</h1>
+<h1>💍 Losowanie świadków</h1>
 
-<textarea id="imiona" placeholder="Wpisz imiona, każde w osobnej linii"></textarea>
+<div class="subtitle">
+    na ślub Eli i Michała
+</div>
 
-<button id="losuj">LOSUJ</button>
+<textarea id="imiona"
+placeholder="Wpisz imiona, każde w osobnej linii"></textarea>
 
-<div id="wynik">—</div>
+<button id="losuj">🎲 LOSUJ ŚWIADKÓW</button>
+
+<div id="wynik">
+
+    <div class="osoba">
+        <div class="nazwa">Świadek</div>
+        <div id="swiadkowa">—</div>
+    </div>
+
+    <div class="osoba">
+        <div class="nazwa">Świadek</div>
+        <div id="swiadek">—</div>
+    </div>
+
+</div>
 
 <div id="pozostalo"></div>
 
@@ -107,8 +160,11 @@ button {
 let pula = null;
 
 const pole = document.getElementById("imiona");
-const wynik = document.getElementById("wynik");
+const swiadkowa = document.getElementById("swiadkowa");
+const swiadek = document.getElementById("swiadek");
 const pozostalo = document.getElementById("pozostalo");
+const przycisk = document.getElementById("losuj");
+
 
 function pobierzImiona() {
 
@@ -120,38 +176,35 @@ function pobierzImiona() {
 
 }
 
+
 function rozpocznij() {
 
     pula = pobierzImiona();
 
 }
 
-function losuj() {
 
-    if (pula === null) {
-        rozpocznij();
-    }
-
-    if (pula.length === 0) {
-
-        wynik.textContent = "Brak imion";
-        pozostalo.textContent = "";
-        return;
-
-    }
+function animujLosowanie(element, callback) {
 
     let licznik = 0;
 
     const animacja = setInterval(function() {
 
+        if (pula.length === 0) {
+            clearInterval(animacja);
+            return;
+        }
+
         const przypadkowe =
             pula[Math.floor(Math.random() * pula.length)];
 
-        wynik.textContent = przypadkowe;
+        element.textContent = przypadkowe;
+
+        element.classList.add("losowanie");
 
         licznik++;
 
-        if (licznik >= 15) {
+        if (licznik >= 18) {
 
             clearInterval(animacja);
 
@@ -160,36 +213,94 @@ function losuj() {
 
             const wybrane = pula[indeks];
 
-            wynik.textContent = wybrane;
+            element.textContent = wybrane;
+
+            element.classList.remove("losowanie");
 
             pula.splice(indeks, 1);
 
-            pozostalo.textContent =
-                "Pozostało: " + pula.length;
+            callback();
 
         }
 
-    }, 70);
+    }, 80);
 
 }
 
-document.getElementById("losuj").addEventListener("click", losuj);
+
+function losuj() {
+
+    if (pula === null) {
+        rozpocznij();
+    }
+
+    if (pula.length < 2) {
+
+        alert("Potrzebne są co najmniej 2 osoby.");
+
+        return;
+
+    }
+
+    przycisk.disabled = true;
+
+    swiadkowa.textContent = "…";
+    swiadek.textContent = "…";
+
+
+    /* PIERWSZY ŚWIADEK */
+
+    animujLosowanie(swiadkowa, function() {
+
+        /* chwila napięcia */
+
+        setTimeout(function() {
+
+            /* DRUGI ŚWIADEK */
+
+            animujLosowanie(swiadek, function() {
+
+                pozostalo.textContent =
+                    "Pozostało osób: " + pula.length;
+
+                przycisk.disabled = false;
+
+            });
+
+        }, 1200);
+
+    });
+
+}
+
+
+przycisk.addEventListener("click", losuj);
+
+
+/* RESET */
 
 document.getElementById("reset").addEventListener("click", function() {
 
     rozpocznij();
 
-    wynik.textContent = "—";
+    swiadkowa.textContent = "—";
+    swiadek.textContent = "—";
 
     pozostalo.textContent = "";
 
+    przycisk.disabled = false;
+
 });
+
+
+/* Zmiana listy osób = nowe losowanie */
 
 pole.addEventListener("input", function() {
 
     pula = null;
 
-    wynik.textContent = "—";
+    swiadkowa.textContent = "—";
+    swiadek.textContent = "—";
 
     pozostalo.textContent = "";
 
