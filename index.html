@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title> Świadkowie na ślub Eli i Michała</title>
+<title>Losowanie świadków na ślub Eli i Michała</title>
 
 <style>
 body {
@@ -133,12 +133,12 @@ placeholder="Wpisz imiona, każde w osobnej linii"></textarea>
 
     <div class="osoba">
         <div class="nazwa">Świadek</div>
-        <div id="swiadkowa">—</div>
+        <div id="swiadek1">—</div>
     </div>
 
     <div class="osoba">
         <div class="nazwa">Świadek</div>
-        <div id="swiadek">—</div>
+        <div id="swiadek2">—</div>
     </div>
 
 </div>
@@ -150,10 +150,11 @@ placeholder="Wpisz imiona, każde w osobnej linii"></textarea>
 <script>
 
 let pula = null;
+let animacjaTrwa = false;
 
 const pole = document.getElementById("imiona");
-const swiadkowa = document.getElementById("swiadkowa");
-const swiadek = document.getElementById("swiadek");
+const swiadek1 = document.getElementById("swiadek1");
+const swiadek2 = document.getElementById("swiadek2");
 const przycisk = document.getElementById("losuj");
 
 
@@ -162,8 +163,98 @@ function pobierzImiona() {
     return pole.value
         .split(/[\n,;]+/)
         .map(imie => imie.trim())
-        .filter(imie => imie !== "")
-        .filter(imie => imie.toLowerCase() !== "zuza");
+        .filter(imie => imie !== "");
+
+}
+
+
+/*
+   PRAWDZIWA PULA LOSOWANIA.
+   Zuza jest tutaj pomijana tylko przy wyborze końcowego wyniku.
+*/
+
+function pobierzPuleDoLosowania() {
+
+    return pula.filter(imie =>
+        imie.toLowerCase() !== "zuza"
+    );
+
+}
+
+
+/*
+   ANIMACJA.
+   Tutaj korzystamy z CAŁEJ listy,
+   dlatego Zuza również pojawia się na ekranie.
+*/
+
+function animujLosowanie(element, callback) {
+
+    let licznik = 0;
+
+    const wszystkieImiona = pobierzImiona();
+
+    const animacja = setInterval(function() {
+
+        if (wszystkieImiona.length === 0) {
+            clearInterval(animacja);
+            return;
+        }
+
+        const przypadkowe =
+            wszystkieImiona[
+                Math.floor(Math.random() * wszystkieImiona.length)
+            ];
+
+        element.textContent = przypadkowe;
+        element.classList.add("losowanie");
+
+        licznik++;
+
+        if (licznik >= 25) {
+
+            clearInterval(animacja);
+
+            /*
+               KOŃCOWY WYBÓR:
+               Zuza nie znajduje się w tej puli.
+            */
+
+            const prawdziwaPula = pobierzPuleDoLosowania();
+
+            if (prawdziwaPula.length === 0) {
+                element.textContent = "Brak osób";
+                element.classList.remove("losowanie");
+                callback();
+                return;
+            }
+
+            const indeks =
+                Math.floor(Math.random() * prawdziwaPula.length);
+
+            const wybrane = prawdziwaPula[indeks];
+
+            element.textContent = wybrane;
+            element.classList.remove("losowanie");
+
+            /*
+               Usuwamy wybraną osobę z puli,
+               żeby nie mogła zostać wylosowana drugi raz.
+            */
+
+            const indeksWPuli = pula.findIndex(
+                imie => imie === wybrane
+            );
+
+            if (indeksWPuli !== -1) {
+                pula.splice(indeksWPuli, 1);
+            }
+
+            callback();
+
+        }
+
+    }, 80);
 
 }
 
@@ -175,82 +266,48 @@ function rozpocznij() {
 }
 
 
-function animujLosowanie(element, callback) {
-
-    let licznik = 0;
-
-    const animacja = setInterval(function() {
-
-        if (pula.length === 0) {
-            clearInterval(animacja);
-            return;
-        }
-
-        const przypadkowe =
-            pula[Math.floor(Math.random() * pula.length)];
-
-        element.textContent = przypadkowe;
-
-        element.classList.add("losowanie");
-
-        licznik++;
-
-        if (licznik >= 18) {
-
-            clearInterval(animacja);
-
-            const indeks =
-                Math.floor(Math.random() * pula.length);
-
-            const wybrane = pula[indeks];
-
-            element.textContent = wybrane;
-
-            element.classList.remove("losowanie");
-
-            pula.splice(indeks, 1);
-
-            callback();
-
-        }
-
-    }, 80);
-
-}
-
-
 function losuj() {
+
+    if (animacjaTrwa) {
+        return;
+    }
 
     if (pula === null) {
         rozpocznij();
     }
 
-    if (pula.length < 2) {
+    const prawdziwaPula = pobierzPuleDoLosowania();
+
+    if (prawdziwaPula.length < 2) {
 
         alert("Potrzebne są co najmniej 2 osoby.");
 
         return;
-
     }
 
+    animacjaTrwa = true;
     przycisk.disabled = true;
 
-    swiadkowa.textContent = "…";
-    swiadek.textContent = "…";
+    swiadek1.textContent = "…";
+    swiadek2.textContent = "…";
 
 
     /* PIERWSZY ŚWIADEK */
 
-    animujLosowanie(swiadkowa, function() {
+    animujLosowanie(swiadek1, function() {
 
-        /* chwila napięcia */
+        /*
+           Przerwa między pierwszym
+           a drugim losowaniem.
+        */
 
         setTimeout(function() {
 
             /* DRUGI ŚWIADEK */
 
-            animujLosowanie(swiadek, function() {
+            animujLosowanie(swiadek2, function() {
 
+                animacjaTrwa = false;
                 przycisk.disabled = false;
 
             });
@@ -262,6 +319,8 @@ function losuj() {
 }
 
 
+/* LOSOWANIE */
+
 przycisk.addEventListener("click", losuj);
 
 
@@ -269,24 +328,33 @@ przycisk.addEventListener("click", losuj);
 
 document.getElementById("reset").addEventListener("click", function() {
 
+    if (animacjaTrwa) {
+        return;
+    }
+
     rozpocznij();
 
-    swiadkowa.textContent = "—";
-    swiadek.textContent = "—";
-
-    przycisk.disabled = false;
+    swiadek1.textContent = "—";
+    swiadek2.textContent = "—";
 
 });
 
 
-/* Zmiana listy osób = nowe losowanie */
+/*
+   Jeśli zmienisz listę imion,
+   tworzymy nową pulę.
+*/
 
 pole.addEventListener("input", function() {
 
+    if (animacjaTrwa) {
+        return;
+    }
+
     pula = null;
 
-    swiadkowa.textContent = "—";
-    swiadek.textContent = "—";
+    swiadek1.textContent = "—";
+    swiadek2.textContent = "—";
 
 });
 
