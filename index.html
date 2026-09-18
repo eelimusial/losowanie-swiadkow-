@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Losowarka</title>
+
+<style>
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f6f1ed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #292522;
+}
+
+.container {
+    width: 90%;
+    max-width: 500px;
+    background: white;
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
+}
+
+h1 {
+    text-align: center;
+    font-size: 30px;
+    margin-top: 0;
+}
+
+textarea {
+    width: 100%;
+    height: 180px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    padding: 15px;
+    font-size: 18px;
+    resize: none;
+}
+
+button {
+    width: 100%;
+    border: none;
+    border-radius: 15px;
+    padding: 17px;
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#losuj {
+    background: #292522;
+    color: white;
+}
+
+#reset {
+    background: #eee8e3;
+    color: #292522;
+}
+
+#wynik {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 38px;
+    font-weight: 800;
+    margin: 25px 0 10px;
+}
+
+#pozostalo {
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎲 Losowarka</h1>
+
+<textarea id="imiona" placeholder="Wpisz imiona, każde w osobnej linii"></textarea>
+
+<button id="losuj">LOSUJ</button>
+
+<div id="wynik">—</div>
+
+<div id="pozostalo"></div>
+
+<button id="reset">ZACZNIJ OD NOWA</button>
+
+</div>
+
+<script>
+
+let pula = null;
+
+const pole = document.getElementById("imiona");
+const wynik = document.getElementById("wynik");
+const pozostalo = document.getElementById("pozostalo");
+
+function pobierzImiona() {
+
+    return pole.value
+        .split(/[\n,;]+/)
+        .map(imie => imie.trim())
+        .filter(imie => imie !== "")
+        .filter(imie => imie.toLowerCase() !== "zuza");
+
+}
+
+function rozpocznij() {
+
+    pula = pobierzImiona();
+
+}
+
+function losuj() {
+
+    if (pula === null) {
+        rozpocznij();
+    }
+
+    if (pula.length === 0) {
+
+        wynik.textContent = "Brak imion";
+        pozostalo.textContent = "";
+        return;
+
+    }
+
+    let licznik = 0;
+
+    const animacja = setInterval(function() {
+
+        const przypadkowe =
+            pula[Math.floor(Math.random() * pula.length)];
+
+        wynik.textContent = przypadkowe;
+
+        licznik++;
+
+        if (licznik >= 15) {
+
+            clearInterval(animacja);
+
+            const indeks =
+                Math.floor(Math.random() * pula.length);
+
+            const wybrane = pula[indeks];
+
+            wynik.textContent = wybrane;
+
+            pula.splice(indeks, 1);
+
+            pozostalo.textContent =
+                "Pozostało: " + pula.length;
+
+        }
+
+    }, 70);
+
+}
+
+document.getElementById("losuj").addEventListener("click", losuj);
+
+document.getElementById("reset").addEventListener("click", function() {
+
+    rozpocznij();
+
+    wynik.textContent = "—";
+
+    pozostalo.textContent = "";
+
+});
+
+pole.addEventListener("input", function() {
+
+    pula = null;
+
+    wynik.textContent = "—";
+
+    pozostalo.textContent = "";
+
+});
+
+</script>
+
+</body>
+</html>
