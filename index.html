@@ -111,12 +111,6 @@ button {
         transform: scale(1.08);
     }
 }
-
-#pozostalo {
-    text-align: center;
-    color: #777;
-    font-size: 14px;
-}
 </style>
 </head>
 
@@ -149,8 +143,6 @@ placeholder="Wpisz imiona, każde w osobnej linii"></textarea>
 
 </div>
 
-<div id="pozostalo"></div>
-
 <button id="reset">ZACZNIJ OD NOWA</button>
 
 </div>
@@ -162,7 +154,6 @@ let pula = null;
 const pole = document.getElementById("imiona");
 const swiadkowa = document.getElementById("swiadkowa");
 const swiadek = document.getElementById("swiadek");
-const pozostalo = document.getElementById("pozostalo");
 const przycisk = document.getElementById("losuj");
 
 
@@ -260,9 +251,6 @@ function losuj() {
 
             animujLosowanie(swiadek, function() {
 
-                pozostalo.textContent =
-                    "Pozostało osób: " + pula.length;
-
                 przycisk.disabled = false;
 
             });
@@ -286,8 +274,6 @@ document.getElementById("reset").addEventListener("click", function() {
     swiadkowa.textContent = "—";
     swiadek.textContent = "—";
 
-    pozostalo.textContent = "";
-
     przycisk.disabled = false;
 
 });
@@ -301,8 +287,6 @@ pole.addEventListener("input", function() {
 
     swiadkowa.textContent = "—";
     swiadek.textContent = "—";
-
-    pozostalo.textContent = "";
 
 });
 
