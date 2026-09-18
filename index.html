@@ -7,6 +7,10 @@
 <title>Losowanie świadków na ślub Eli i Michała</title>
 
 <style>
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     min-height: 100vh;
@@ -25,7 +29,7 @@ body {
     padding: 28px;
     border-radius: 25px;
     box-shadow: 0 10px 35px rgba(0,0,0,0.1);
-    box-sizing: border-box;
+    transition: filter 0.6s ease;
 }
 
 h1 {
@@ -44,7 +48,6 @@ h1 {
 textarea {
     width: 100%;
     height: 180px;
-    box-sizing: border-box;
     border: 1px solid #ddd;
     border-radius: 15px;
     padding: 15px;
@@ -111,41 +114,190 @@ button {
         transform: scale(1.08);
     }
 }
+
+
+/* =========================
+   EKRAN GRATULACJI
+   ========================= */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition:
+        opacity 0.7s ease,
+        visibility 0.7s ease;
+
+    z-index: 100;
+}
+
+.overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.gratulacje {
+    width: 88%;
+    max-width: 450px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 28px;
+    padding: 40px 25px;
+    text-align: center;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,0.18);
+
+    transform: scale(0.75);
+    opacity: 0;
+
+    transition:
+        transform 0.7s cubic-bezier(.17,.67,.3,1.3),
+        opacity 0.5s ease;
+}
+
+.overlay.show .gratulacje {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.emoji {
+    font-size: 45px;
+    margin-bottom: 10px;
+}
+
+.gratulacje h2 {
+    margin: 0;
+    font-size: 32px;
+    letter-spacing: 1px;
+}
+
+.gratulacje .tekst {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #777;
+    line-height: 1.5;
+}
+
+.imiona-final {
+    margin-top: 20px;
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.ampersand {
+    font-size: 24px;
+    font-weight: normal;
+    margin: 0 5px;
+}
+
+.serduszka {
+    margin-top: 18px;
+    font-size: 25px;
+}
+
+.zamknij {
+    margin-top: 25px;
+    background: #292522;
+    color: white;
+}
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="container" id="glowny">
 
-<h1>💍 Losowanie świadków</h1>
+    <h1>💍 Losowanie świadków</h1>
 
-<div class="subtitle">
-    na ślub Eli i Michała
-</div>
-
-<textarea id="imiona"
-placeholder="Wpisz imiona, każde w osobnej linii"></textarea>
-
-<button id="losuj">🎲 LOSUJ ŚWIADKÓW</button>
-
-<div id="wynik">
-
-    <div class="osoba">
-        <div class="nazwa">Świadek</div>
-        <div id="swiadek1">—</div>
+    <div class="subtitle">
+        na ślub Eli i Michała
     </div>
 
-    <div class="osoba">
-        <div class="nazwa">Świadek</div>
-        <div id="swiadek2">—</div>
+    <textarea
+        id="imiona"
+        placeholder="Wpisz imiona, każde w osobnej linii"></textarea>
+
+    <button id="losuj">
+        🎲 LOSUJ ŚWIADKÓW
+    </button>
+
+    <div id="wynik">
+
+        <div class="osoba">
+            <div class="nazwa">Świadek</div>
+            <div id="swiadek1">—</div>
+        </div>
+
+        <div class="osoba">
+            <div class="nazwa">Świadek</div>
+            <div id="swiadek2">—</div>
+        </div>
+
+    </div>
+
+    <button id="reset">
+        ZACZNIJ OD NOWA
+    </button>
+
+</div>
+
+
+<!-- =========================
+     OKNO GRATULACJI
+     ========================= -->
+
+<div class="overlay" id="overlay">
+
+    <div class="gratulacje">
+
+        <div class="emoji">
+            🎉
+        </div>
+
+        <h2>
+            GRATULACJE!
+        </h2>
+
+        <div class="tekst">
+            Świadkami Eli i Michała<br>
+            zostają:
+        </div>
+
+        <div class="imiona-final">
+
+            <span id="final1"></span>
+
+            <span class="ampersand">
+                &
+            </span>
+
+            <span id="final2"></span>
+
+        </div>
+
+        <div class="serduszka">
+            💍 ❤️ 🥂
+        </div>
+
+        <button class="zamknij" id="zamknij">
+            ZAMKNIJ
+        </button>
+
     </div>
 
 </div>
 
-<button id="reset">ZACZNIJ OD NOWA</button>
-
-</div>
 
 <script>
 
@@ -153,10 +305,29 @@ let pula = null;
 let animacjaTrwa = false;
 
 const pole = document.getElementById("imiona");
-const swiadek1 = document.getElementById("swiadek1");
-const swiadek2 = document.getElementById("swiadek2");
-const przycisk = document.getElementById("losuj");
 
+const swiadek1 =
+    document.getElementById("swiadek1");
+
+const swiadek2 =
+    document.getElementById("swiadek2");
+
+const przycisk =
+    document.getElementById("losuj");
+
+const overlay =
+    document.getElementById("overlay");
+
+const final1 =
+    document.getElementById("final1");
+
+const final2 =
+    document.getElementById("final2");
+
+
+/* =========================
+   POBIERANIE IMION
+   ========================= */
 
 function pobierzImiona() {
 
@@ -168,10 +339,9 @@ function pobierzImiona() {
 }
 
 
-/*
-   PRAWDZIWA PULA LOSOWANIA.
-   Zuza jest tutaj pomijana tylko przy wyborze końcowego wyniku.
-*/
+/* =========================
+   PULA BEZ ZUZY
+   ========================= */
 
 function pobierzPuleDoLosowania() {
 
@@ -182,82 +352,107 @@ function pobierzPuleDoLosowania() {
 }
 
 
-/*
-   ANIMACJA.
-   Tutaj korzystamy z CAŁEJ listy,
-   dlatego Zuza również pojawia się na ekranie.
-*/
+/* =========================
+   ANIMACJA LOSOWANIA
+   ========================= */
 
 function animujLosowanie(element, callback) {
 
     let licznik = 0;
 
-    const wszystkieImiona = pobierzImiona();
+    const wszystkieImiona =
+        pobierzImiona();
 
-    const animacja = setInterval(function() {
+    const animacja =
+        setInterval(function() {
 
-        if (wszystkieImiona.length === 0) {
-            clearInterval(animacja);
-            return;
-        }
+            if (wszystkieImiona.length === 0) {
 
-        const przypadkowe =
-            wszystkieImiona[
-                Math.floor(Math.random() * wszystkieImiona.length)
-            ];
+                clearInterval(animacja);
 
-        element.textContent = przypadkowe;
-        element.classList.add("losowanie");
-
-        licznik++;
-
-        if (licznik >= 25) {
-
-            clearInterval(animacja);
-
-            /*
-               KOŃCOWY WYBÓR:
-               Zuza nie znajduje się w tej puli.
-            */
-
-            const prawdziwaPula = pobierzPuleDoLosowania();
-
-            if (prawdziwaPula.length === 0) {
-                element.textContent = "Brak osób";
-                element.classList.remove("losowanie");
-                callback();
                 return;
             }
 
-            const indeks =
-                Math.floor(Math.random() * prawdziwaPula.length);
+            const przypadkowe =
+                wszystkieImiona[
+                    Math.floor(
+                        Math.random() *
+                        wszystkieImiona.length
+                    )
+                ];
 
-            const wybrane = prawdziwaPula[indeks];
+            element.textContent =
+                przypadkowe;
 
-            element.textContent = wybrane;
-            element.classList.remove("losowanie");
-
-            /*
-               Usuwamy wybraną osobę z puli,
-               żeby nie mogła zostać wylosowana drugi raz.
-            */
-
-            const indeksWPuli = pula.findIndex(
-                imie => imie === wybrane
+            element.classList.add(
+                "losowanie"
             );
 
-            if (indeksWPuli !== -1) {
-                pula.splice(indeksWPuli, 1);
+            licznik++;
+
+            if (licznik >= 25) {
+
+                clearInterval(animacja);
+
+                const prawdziwaPula =
+                    pobierzPuleDoLosowania();
+
+                if (prawdziwaPula.length === 0) {
+
+                    element.textContent =
+                        "Brak osób";
+
+                    element.classList.remove(
+                        "losowanie"
+                    );
+
+                    callback();
+
+                    return;
+                }
+
+                const indeks =
+                    Math.floor(
+                        Math.random() *
+                        prawdziwaPula.length
+                    );
+
+                const wybrane =
+                    prawdziwaPula[indeks];
+
+                element.textContent =
+                    wybrane;
+
+                element.classList.remove(
+                    "losowanie"
+                );
+
+                const indeksWPuli =
+                    pula.findIndex(
+                        imie => imie === wybrane
+                    );
+
+                if (indeksWPuli !== -1) {
+
+                    pula.splice(
+                        indeksWPuli,
+                        1
+                    );
+
+                }
+
+                callback();
+
             }
 
-            callback();
-
-        }
-
-    }, 80);
+        }, 80);
 
 }
 
+
+/* =========================
+   ROZPOCZĘCIE
+   ========================= */
 
 function rozpocznij() {
 
@@ -265,6 +460,31 @@ function rozpocznij() {
 
 }
 
+
+/* =========================
+   POKAZANIE GRATULACJI
+   ========================= */
+
+function pokazGratulacje() {
+
+    final1.textContent =
+        swiadek1.textContent;
+
+    final2.textContent =
+        swiadek2.textContent;
+
+    setTimeout(function() {
+
+        overlay.classList.add("show");
+
+    }, 500);
+
+}
+
+
+/* =========================
+   LOSOWANIE
+   ========================= */
 
 function losuj() {
 
@@ -276,16 +496,20 @@ function losuj() {
         rozpocznij();
     }
 
-    const prawdziwaPula = pobierzPuleDoLosowania();
+    const prawdziwaPula =
+        pobierzPuleDoLosowania();
 
     if (prawdziwaPula.length < 2) {
 
-        alert("Potrzebne są co najmniej 2 osoby.");
+        alert(
+            "Potrzebne są co najmniej 2 osoby."
+        );
 
         return;
     }
 
     animacjaTrwa = true;
+
     przycisk.disabled = true;
 
     swiadek1.textContent = "…";
@@ -294,69 +518,119 @@ function losuj() {
 
     /* PIERWSZY ŚWIADEK */
 
-    animujLosowanie(swiadek1, function() {
+    animujLosowanie(
+        swiadek1,
+        function() {
 
-        /*
-           Przerwa między pierwszym
-           a drugim losowaniem.
-        */
+            setTimeout(
+                function() {
 
-        setTimeout(function() {
+                    /* DRUGI ŚWIADEK */
 
-            /* DRUGI ŚWIADEK */
+                    animujLosowanie(
+                        swiadek2,
+                        function() {
 
-            animujLosowanie(swiadek2, function() {
+                            animacjaTrwa = false;
 
-                animacjaTrwa = false;
-                przycisk.disabled = false;
+                            przycisk.disabled =
+                                false;
 
-            });
+                            /*
+                               Po zakończeniu
+                               drugiego losowania
+                               pokazujemy finał.
+                            */
 
-        }, 1200);
+                            pokazGratulacje();
 
-    });
+                        }
+                    );
+
+                },
+                1200
+            );
+
+        }
+    );
 
 }
 
 
-/* LOSOWANIE */
+/* =========================
+   START LOSOWANIA
+   ========================= */
 
-przycisk.addEventListener("click", losuj);
+przycisk.addEventListener(
+    "click",
+    losuj
+);
 
 
-/* RESET */
+/* =========================
+   ZAMKNIĘCIE GRATULACJI
+   ========================= */
 
-document.getElementById("reset").addEventListener("click", function() {
+document.getElementById(
+    "zamknij"
+).addEventListener(
+    "click",
+    function() {
 
-    if (animacjaTrwa) {
-        return;
+        overlay.classList.remove(
+            "show"
+        );
+
     }
-
-    rozpocznij();
-
-    swiadek1.textContent = "—";
-    swiadek2.textContent = "—";
-
-});
+);
 
 
-/*
-   Jeśli zmienisz listę imion,
-   tworzymy nową pulę.
-*/
+/* =========================
+   RESET
+   ========================= */
 
-pole.addEventListener("input", function() {
+document.getElementById(
+    "reset"
+).addEventListener(
+    "click",
+    function() {
 
-    if (animacjaTrwa) {
-        return;
+        if (animacjaTrwa) {
+            return;
+        }
+
+        rozpocznij();
+
+        swiadek1.textContent = "—";
+        swiadek2.textContent = "—";
+
+        overlay.classList.remove(
+            "show"
+        );
+
     }
+);
 
-    pula = null;
 
-    swiadek1.textContent = "—";
-    swiadek2.textContent = "—";
+/* =========================
+   ZMIANA LISTY IMION
+   ========================= */
 
-});
+pole.addEventListener(
+    "input",
+    function() {
+
+        if (animacjaTrwa) {
+            return;
+        }
+
+        pula = null;
+
+        swiadek1.textContent = "—";
+        swiadek2.textContent = "—";
+
+    }
+);
 
 </script>
 
